@@ -55,7 +55,6 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			];
 
 			for (const attackSpace of forwardDiagonals) {
-				console.log(attackSpace);
 				if (isOnBoard(attackSpace) && isSpaceBlocked(attackSpace, piece, board) === SpaceBlockedResult.BlockedByOtherTeam) {
 					result.push(attackSpace);
 				}
@@ -91,7 +90,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			];
 
 			for (const dir of directions) {
-				const currentSpace = coords;
+				const currentSpace = new Vector2(coords.x, coords.y);
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -100,7 +99,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(currentSpace);
+					result.push(new Vector2(currentSpace.x, currentSpace.y));
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -120,7 +119,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			];
 
 			for (const dir of directions) {
-				const currentSpace = coords;
+				const currentSpace = new Vector2(coords.x, coords.y);
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -129,7 +128,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(currentSpace);
+					result.push(new Vector2(currentSpace.x, currentSpace.y));
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -153,7 +152,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			];
 
 			for (const dir of directions) {
-				const currentSpace = coords;
+				const currentSpace = new Vector2(coords.x, coords.y);
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -162,7 +161,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(currentSpace);
+					result.push(new Vector2(currentSpace.x, currentSpace.y));
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -279,7 +278,6 @@ export default function Chess() {
 				clearBoardHighlights(newBoard);
 
 				const movedPiece = newBoard[selectedPieceTile.x][selectedPieceTile.y];
-				console.log(movedPiece);
 				newBoard[tile.x][tile.y] = new Piece(movedPiece.type, movedPiece.color, false);
 				newBoard[selectedPieceTile.x][selectedPieceTile.y].type = PieceType.None;
 
@@ -291,6 +289,10 @@ export default function Chess() {
 				clearBoardHighlights(newBoard);
 				setBoard(newBoard);
 				selectPiece(tile, board[tile.x][tile.y]);
+			} else {
+				const newBoard = [...board];
+				clearBoardHighlights(newBoard);
+				setBoard(newBoard);
 			}
 		}
 	}
