@@ -1,5 +1,5 @@
 import { MouseEventHandler, useState } from "react";
-import { PieceType, PieceColor, Piece, Vector2, TYPE, COLOR, HIGHTLIGHTED, STARTING_BOARD } from "./chess-types";
+import { PieceType, PieceColor, Piece, Vector2, STARTING_BOARD } from "./chess-types";
 
 const BOARD_HEIGHT = 8;
 const BOARD_WIDTH = 8;
@@ -16,11 +16,11 @@ enum SpaceBlockedResult {
 
 function isSpaceBlocked(coords: Vector2, attacker: Piece, board: Piece[][]): SpaceBlockedResult {
 	const targetPiece = board[coords.x][coords.y];
-	if (targetPiece[TYPE] === PieceType.None) {
+	if (targetPiece.type === PieceType.None) {
 		return SpaceBlockedResult.Unoccupied;
 	}
 
-	return targetPiece[COLOR] === attacker[COLOR] ? SpaceBlockedResult.BlockedByOwnTeam : SpaceBlockedResult.BlockedByOtherTeam;
+	return targetPiece.color === attacker.color ? SpaceBlockedResult.BlockedByOwnTeam : SpaceBlockedResult.BlockedByOtherTeam;
 }
 
 /*function getMovesForDirections(coords: Vector2, attacker: Piece, board: Piece[][], directions: Vector2[]): Array<Vector2> {
@@ -30,9 +30,9 @@ function isSpaceBlocked(coords: Vector2, attacker: Piece, board: Piece[][]): Spa
 
 function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<Vector2> {
 	const result = new Array<Vector2>();
-	switch (piece[TYPE]) {
+	switch (piece.type) {
 		case PieceType.Pawn: {
-			const forwardSpace = new Vector2(coords.x, piece[COLOR] === PieceColor.White ? coords.y - 1 : coords.y + 1);
+			const forwardSpace = new Vector2(coords.x, piece.color === PieceColor.White ? coords.y - 1 : coords.y + 1);
 			if (!isOnBoard(forwardSpace)) {
 				break;
 			}
@@ -42,9 +42,9 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			}
 
 			result.push(forwardSpace);
-			if (coords.y === (piece[COLOR] === PieceColor.White ? 6 : 1)) {
+			if (coords.y === (piece.color === PieceColor.White ? 6 : 1)) {
 				const forwardSpace2 = new Vector2(forwardSpace.x, forwardSpace.y);
-				forwardSpace2.y += piece[COLOR] === PieceColor.White ? -1 : 1;
+				forwardSpace2.y += piece.color === PieceColor.White ? -1 : 1;
 				result.push(forwardSpace2);
 			}
 		} break;
@@ -198,7 +198,7 @@ function Tile(props: TileProps) {
 		"-", "P", "N", "B", "R", "Q", "K"
 	];
 
-	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece[HIGHTLIGHTED] ? "pink" : "grey", color: props.piece[COLOR] === PieceColor.White ? "white" : "black"}}><b>{PIECE_TEXT[props.piece[TYPE]]}</b></button>
+	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece.tileHighlighted ? "pink" : "grey", color: props.piece.color === PieceColor.White ? "white" : "black"}}><b>{PIECE_TEXT[props.piece.type]}</b></button>
 }
 
 interface GameBoardProps {
@@ -229,30 +229,32 @@ export default function Chess() {
 	function onClickTile(tile: Vector2) {
 		const tilePiece = board[tile.x][tile.y];
 		if (!selectingMove) {
-			if (tilePiece[TYPE] !== PieceType.None) {
+			if (tilePiece.type !== PieceType.None) {
 				const newBoard = [...board];
 				const validMoves = getValidMoves(tilePiece, tile, board);
-				for (const move of validMoves) {
-					newBoard[move.x][move.y][HIGHTLIGHTED] = true;
+				if (validMoves.length > 0) {
+					for (const move of validMoves) {
+						newBoard[move.x][move.y].tileHighlighted = true;
+					}
+	
+					setBoard(newBoard);
+					setSelectingMove(true);
+					setSelectedPieceTile(tile);
 				}
-
-				setBoard(newBoard);
-				setSelectingMove(true);
-				setSelectedPieceTile(tile);
 			}
 		} else {
-			if (tilePiece[HIGHTLIGHTED]) {
+			if (tilePiece.tileHighlighted) {
 				const newBoard = [...board];
 				for (const row of newBoard) {
 					for (const tile of row) {
-						tile[HIGHTLIGHTED] = false;
+						tile.tileHighlighted = false;
 					}
 				}
 
 				const movedPiece = newBoard[selectedPieceTile.x][selectedPieceTile.y];
 				console.log(movedPiece);
-				newBoard[tile.x][tile.y] = [movedPiece[TYPE], movedPiece[COLOR], false];
-				newBoard[selectedPieceTile.x][selectedPieceTile.y][TYPE] = PieceType.None;
+				newBoard[tile.x][tile.y] = new Piece(movedPiece.type, movedPiece.color, false);
+				newBoard[selectedPieceTile.x][selectedPieceTile.y].type = PieceType.None;
 
 				setBoard(newBoard);
 				setSelectingMove(false);
