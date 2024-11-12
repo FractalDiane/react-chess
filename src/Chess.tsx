@@ -32,7 +32,8 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 	const result = new Array<Vector2>();
 	switch (piece.type) {
 		case PieceType.Pawn: {
-			const forwardSpace = new Vector2(coords.x, piece.color === PieceColor.White ? coords.y - 1 : coords.y + 1);
+			const forwardYDir = piece.color === PieceColor.White ? -1 : 1;
+			const forwardSpace = new Vector2(coords.x, coords.y + forwardYDir);
 			if (!isOnBoard(forwardSpace)) {
 				break;
 			}
@@ -44,8 +45,20 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 			result.push(forwardSpace);
 			if (coords.y === (piece.color === PieceColor.White ? 6 : 1)) {
 				const forwardSpace2 = new Vector2(forwardSpace.x, forwardSpace.y);
-				forwardSpace2.y += piece.color === PieceColor.White ? -1 : 1;
+				forwardSpace2.y += forwardYDir;
 				result.push(forwardSpace2);
+			}
+
+			const forwardDiagonals = [
+				new Vector2(coords.x - 1, coords.y + forwardYDir),
+				new Vector2(coords.x + 1, coords.y + forwardYDir),
+			];
+
+			for (const attackSpace of forwardDiagonals) {
+				console.log(attackSpace);
+				if (isOnBoard(attackSpace) && isSpaceBlocked(attackSpace, piece, board) === SpaceBlockedResult.BlockedByOtherTeam) {
+					result.push(attackSpace);
+				}
 			}
 		} break;
 
@@ -223,41 +236,61 @@ function GameBoard(props: GameBoardProps) {
 export default function Chess() {
 	const [board, setBoard] = useState<Piece[][]>(STARTING_BOARD);
 
+	const [currentTurn, setCurrentTurn] = useState(PieceColor.White);
 	const [selectingMove, setSelectingMove] = useState(false);
 	const [selectedPieceTile, setSelectedPieceTile] = useState(new Vector2(0, 0));
 
+	function selectPiece(tile: Vector2, piece: Piece) {
+		const newBoard = [...board];
+		const validMoves = getValidMoves(piece, tile, board);
+		if (validMoves.length > 0) {
+			for (const move of validMoves) {
+				newBoard[move.x][move.y].tileHighlighted = true;
+			}
+
+			setBoard(newBoard);
+			setSelectingMove(true);
+			setSelectedPieceTile(tile);
+		}
+	}
+
+	function clearBoardHighlights(board: Piece[][]) {
+		for (const row of board) {
+			for (const tile of row) {
+				tile.tileHighlighted = false;
+			}
+		}
+	}
+
+	function changeTurn() {
+		setCurrentTurn((currentTurn + 1) % 2);
+	}
+
 	function onClickTile(tile: Vector2) {
 		const tilePiece = board[tile.x][tile.y];
+
 		if (!selectingMove) {
-			if (tilePiece.type !== PieceType.None) {
-				const newBoard = [...board];
-				const validMoves = getValidMoves(tilePiece, tile, board);
-				if (validMoves.length > 0) {
-					for (const move of validMoves) {
-						newBoard[move.x][move.y].tileHighlighted = true;
-					}
-	
-					setBoard(newBoard);
-					setSelectingMove(true);
-					setSelectedPieceTile(tile);
-				}
+			if (tilePiece.type !== PieceType.None && tilePiece.color === currentTurn) {
+				selectPiece(tile, tilePiece);
 			}
 		} else {
 			if (tilePiece.tileHighlighted) {
 				const newBoard = [...board];
-				for (const row of newBoard) {
-					for (const tile of row) {
-						tile.tileHighlighted = false;
-					}
-				}
+				clearBoardHighlights(newBoard);
 
 				const movedPiece = newBoard[selectedPieceTile.x][selectedPieceTile.y];
 				console.log(movedPiece);
 				newBoard[tile.x][tile.y] = new Piece(movedPiece.type, movedPiece.color, false);
 				newBoard[selectedPieceTile.x][selectedPieceTile.y].type = PieceType.None;
 
+				changeTurn();
 				setBoard(newBoard);
 				setSelectingMove(false);
+			} else if (tilePiece.color === board[selectedPieceTile.x][selectedPieceTile.y].color) {
+				const newBoard = [...board];
+				clearBoardHighlights(newBoard);
+				setBoard(newBoard);
+				selectPiece(tile, board[tile.x][tile.y]);
 			}
 		}
 	}
