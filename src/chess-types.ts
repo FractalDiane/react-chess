@@ -13,107 +13,142 @@ export enum PieceColor {
 	Black,
 }
 
-export class Piece {
-	public type: PieceType;
-	public color: PieceColor;
-	public tileHighlighted: boolean;
+export const PIECE_LETTERS = [
+	"-", "P", "N", "B", "R", "Q", "K"
+];
 
-	constructor(type: PieceType, color: PieceColor, highlighted: boolean) {
-		this.type = type;
-		this.color = color;
-		this.tileHighlighted = highlighted;
-	}
+export const RANK_LETTERS = [
+	"a", "b", "c", "d", "e", "f", "g", "h"
+];
+
+export interface Piece {
+	type: PieceType;
+	color: PieceColor;
+	tileHighlighted: boolean;
 }
 
-export class Vector2 {
+export interface Vector2 {
 	x: number;
 	y: number;
+}
 
-	constructor(x: number, y: number) {
-		this.x = x;
-		this.y = y;
-	}
+export enum CastleType {
+	None,
+	KingSide,
+	QueenSide,
+}
+
+export enum CheckType {
+	None,
+	Check,
+	Checkmate,
+}
+
+export interface ChessMove {
+	originSpace: Vector2;
+	targetSpace: Vector2;
+	piece: Piece;
+
+	capturedPiece: Piece;
+	isEnPassant: boolean;
+
+	castleType: CastleType;
+	checkType: CheckType;
+}
+
+export function makeChessMove(originSpace: Vector2, targetSpace: Vector2, piece: Piece): ChessMove {
+	return {
+		originSpace: {...originSpace},
+		targetSpace: {...targetSpace},
+		piece: {...piece},
+
+		capturedPiece: {type: PieceType.None, color: PieceColor.White, tileHighlighted: false},
+		isEnPassant: false,
+
+		castleType: CastleType.None,
+		checkType: CheckType.None,
+	};
 }
 
 export const STARTING_BOARD: Piece[][] = [
 	[
-		new Piece(PieceType.Rook, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Rook, PieceColor.White, false),
+		{type: PieceType.Rook, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Rook, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Knight, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Knight, PieceColor.White, false),
+		{type: PieceType.Knight, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Knight, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Bishop, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Bishop, PieceColor.White, false),
+		{type: PieceType.Bishop, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Bishop, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Queen, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Queen, PieceColor.White, false),
+		{type: PieceType.Queen, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Queen, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.King, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.King, PieceColor.White, false),
+		{type: PieceType.King, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.King, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Bishop, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Bishop, PieceColor.White, false),
+		{type: PieceType.Bishop, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Bishop, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Knight, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Knight, PieceColor.White, false),
+		{type: PieceType.Knight, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Knight, color: PieceColor.White, tileHighlighted: false},
 	],
 	[
-		new Piece(PieceType.Rook, PieceColor.Black, false),
-		new Piece(PieceType.Pawn, PieceColor.Black, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.None, PieceColor.White, false),
-		new Piece(PieceType.Pawn, PieceColor.White, false),
-		new Piece(PieceType.Rook, PieceColor.White, false),
+		{type: PieceType.Rook, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.None, color: PieceColor.Black, tileHighlighted: false},
+		{type: PieceType.Pawn, color: PieceColor.White, tileHighlighted: false},
+		{type: PieceType.Rook, color: PieceColor.White, tileHighlighted: false},
 	],
 ];

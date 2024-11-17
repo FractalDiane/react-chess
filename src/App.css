@@ -13,3 +13,7 @@
 	background-color: grey;
 	border-color: black;
 }
+
+.mainContainer {
+	display: inline;
+}

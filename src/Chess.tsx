@@ -1,5 +1,6 @@
 import { MouseEventHandler, useState } from "react";
-import { PieceType, PieceColor, Piece, Vector2, STARTING_BOARD } from "./chess-types";
+import NotationLog from "./Notation"
+import { PieceType, PieceColor, Piece, Vector2, ChessMove, STARTING_BOARD, PIECE_LETTERS, makeChessMove } from "./chess-types";
 
 const BOARD_HEIGHT = 8;
 const BOARD_WIDTH = 8;
@@ -23,35 +24,31 @@ function isSpaceBlocked(coords: Vector2, attacker: Piece, board: Piece[][]): Spa
 	return targetPiece.color === attacker.color ? SpaceBlockedResult.BlockedByOwnTeam : SpaceBlockedResult.BlockedByOtherTeam;
 }
 
-/*function getMovesForDirections(coords: Vector2, attacker: Piece, board: Piece[][], directions: Vector2[]): Array<Vector2> {
-	const result = new Array<Vector2>();
-	
-}*/
-
 function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<Vector2> {
 	const result = new Array<Vector2>();
 	switch (piece.type) {
 		case PieceType.Pawn: {
 			const forwardYDir = piece.color === PieceColor.White ? -1 : 1;
-			const forwardSpace = new Vector2(coords.x, coords.y + forwardYDir);
+			const forwardSpace = {x: coords.x, y: coords.y + forwardYDir};
 			if (!isOnBoard(forwardSpace)) {
 				break;
 			}
 
-			if (isSpaceBlocked(forwardSpace, piece, board) === SpaceBlockedResult.BlockedByOwnTeam) {
-				break;
-			}
+			if (isSpaceBlocked(forwardSpace, piece, board) === SpaceBlockedResult.Unoccupied) {
+				result.push(forwardSpace);
 
-			result.push(forwardSpace);
-			if (coords.y === (piece.color === PieceColor.White ? 6 : 1)) {
-				const forwardSpace2 = new Vector2(forwardSpace.x, forwardSpace.y);
-				forwardSpace2.y += forwardYDir;
-				result.push(forwardSpace2);
+				if (coords.y === (piece.color === PieceColor.White ? 6 : 1)) {
+					const forwardSpace2: Vector2 = {...forwardSpace};
+					if (isSpaceBlocked(forwardSpace2, piece, board) === SpaceBlockedResult.Unoccupied) {
+						forwardSpace2.y += forwardYDir;
+						result.push(forwardSpace2);
+					}
+				}
 			}
 
 			const forwardDiagonals = [
-				new Vector2(coords.x - 1, coords.y + forwardYDir),
-				new Vector2(coords.x + 1, coords.y + forwardYDir),
+				{x: coords.x - 1, y: coords.y + forwardYDir},
+				{x: coords.x + 1, y: coords.y + forwardYDir},
 			];
 
 			for (const attackSpace of forwardDiagonals) {
@@ -62,19 +59,19 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 		} break;
 
 		case PieceType.Knight: {
-			const spaceOffsets = [
-				new Vector2(-1, -2),
-				new Vector2(1, -2),
-				new Vector2(2, -1),
-				new Vector2(2, 1),
-				new Vector2(1, 2),
-				new Vector2(-1, 2),
-				new Vector2(-2, 1),
-				new Vector2(-2, -1),
+			const spaceOffsets: Vector2[] = [
+				{x: -1, y: -2},
+				{x: 1, y: -2},
+				{x: 2, y: -1},
+				{x: 2, y: 1},
+				{x: 1, y: 2},
+				{x: -1, y: 2},
+				{x: -2, y: 1},
+				{x: -2, y: -1},
 			];
 
 			for (const offset of spaceOffsets) {
-				const sum = new Vector2(coords.x + offset.x, coords.y + offset.y);
+				const sum: Vector2 = {x: coords.x + offset.x, y: coords.y + offset.y};
 				if (isOnBoard(sum) && isSpaceBlocked(sum, piece, board) != SpaceBlockedResult.BlockedByOwnTeam) {
 					result.push(sum);
 				}
@@ -82,15 +79,15 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 		} break;
 
 		case PieceType.Bishop: {
-			const directions = [
-				new Vector2(-1, 1),
-				new Vector2(1, -1),
-				new Vector2(1, 1),
-				new Vector2(-1, -1),
+			const directions: Vector2[] = [
+				{x: -1, y: 1},
+				{x: 1, y: -1},
+				{x: 1, y: 1},
+				{x: -1, y: -1},
 			];
 
 			for (const dir of directions) {
-				const currentSpace = new Vector2(coords.x, coords.y);
+				const currentSpace: Vector2 = {...coords};
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -99,7 +96,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(new Vector2(currentSpace.x, currentSpace.y));
+					result.push({...currentSpace});
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -111,15 +108,15 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 		} break;
 
 		case PieceType.Rook: {
-			const directions = [
-				new Vector2(-1, 0),
-				new Vector2(1, 0),
-				new Vector2(0, 1),
-				new Vector2(0, -1),
+			const directions: Vector2[] = [
+				{x: -1, y: 0},
+				{x: 1, y: 0},
+				{x: 0, y: 1},
+				{x: 0, y: -1},
 			];
 
 			for (const dir of directions) {
-				const currentSpace = new Vector2(coords.x, coords.y);
+				const currentSpace: Vector2 = {...coords};
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -128,7 +125,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(new Vector2(currentSpace.x, currentSpace.y));
+					result.push({...currentSpace});
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -141,18 +138,18 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 
 		case PieceType.Queen: {
 			const directions = [
-				new Vector2(-1, 1),
-				new Vector2(1, -1),
-				new Vector2(1, 1),
-				new Vector2(-1, -1),
-				new Vector2(-1, 0),
-				new Vector2(1, 0),
-				new Vector2(0, 1),
-				new Vector2(0, -1),
+				{x: -1, y: 1},
+				{x: 1, y: -1},
+				{x: 1, y: 1},
+				{x: -1, y: -1},
+				{x: -1, y: 0},
+				{x: 1, y: 0},
+				{x: 0, y: 1},
+				{x: 0, y: -1},
 			];
 
 			for (const dir of directions) {
-				const currentSpace = new Vector2(coords.x, coords.y);
+				const currentSpace: Vector2 = {...coords};
 				currentSpace.x += dir.x;
 				currentSpace.y += dir.y;
 				while (isOnBoard(currentSpace)) {
@@ -161,7 +158,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 						break;
 					}
 
-					result.push(new Vector2(currentSpace.x, currentSpace.y));
+					result.push({...currentSpace});
 					if (spaceBlocked === SpaceBlockedResult.BlockedByOtherTeam) {
 						break;
 					}
@@ -174,18 +171,18 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][]): Array<V
 
 		case PieceType.King: {
 			const spaceOffsets = [
-				new Vector2(-1, 1),
-				new Vector2(1, -1),
-				new Vector2(1, 1),
-				new Vector2(-1, -1),
-				new Vector2(-1, 0),
-				new Vector2(1, 0),
-				new Vector2(0, 1),
-				new Vector2(0, -1),
+				{x: -1, y: 1},
+				{x: 1, y: -1},
+				{x: 1, y: 1},
+				{x: -1, y: -1},
+				{x: -1, y: 0},
+				{x: 1, y: 0},
+				{x: 0, y: 1},
+				{x: 0, y: -1},
 			];
 
 			for (const offset of spaceOffsets) {
-				const sum = new Vector2(coords.x + offset.x, coords.y + offset.y);
+				const sum: Vector2 = {x: coords.x + offset.x, y: coords.y + offset.y};
 				if (isOnBoard(sum) && isSpaceBlocked(sum, piece, board) != SpaceBlockedResult.BlockedByOwnTeam) {
 					result.push(sum);
 				}
@@ -206,11 +203,7 @@ interface TileProps {
 }
 
 function Tile(props: TileProps) {
-	const PIECE_TEXT = [
-		"-", "P", "N", "B", "R", "Q", "K"
-	];
-
-	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece.tileHighlighted ? "pink" : "grey", color: props.piece.color === PieceColor.White ? "white" : "black"}}><b>{PIECE_TEXT[props.piece.type]}</b></button>
+	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece.tileHighlighted ? "pink" : "grey", color: props.piece.color === PieceColor.White ? "white" : "black"}}><b>{PIECE_LETTERS[props.piece.type]}</b></button>
 }
 
 interface GameBoardProps {
@@ -223,7 +216,7 @@ function GameBoard(props: GameBoardProps) {
 	for (let y = 0; y < BOARD_HEIGHT; ++y) {
 		const cols = [];
 		for (let x = 0; x < BOARD_WIDTH; ++x) {
-			cols.push(<Tile piece={props.board[x][y]} onClickCallback={() => props.onClickCallback(new Vector2(x, y))} />);
+			cols.push(<Tile piece={props.board[x][y]} onClickCallback={() => props.onClickCallback({x: x, y: y})} />);
 		}
 
 		rows.push(<div>{cols}</div>);
@@ -237,7 +230,8 @@ export default function Chess() {
 
 	const [currentTurn, setCurrentTurn] = useState(PieceColor.White);
 	const [selectingMove, setSelectingMove] = useState(false);
-	const [selectedPieceTile, setSelectedPieceTile] = useState(new Vector2(0, 0));
+	const [selectedPieceTile, setSelectedPieceTile] = useState<Vector2>({x: 0, y: 0});
+	const [movesLog, setMovesLog] = useState<ChessMove[]>([]);
 
 	function selectPiece(tile: Vector2, piece: Piece) {
 		const newBoard = [...board];
@@ -277,9 +271,22 @@ export default function Chess() {
 				const newBoard = [...board];
 				clearBoardHighlights(newBoard);
 
-				const movedPiece = newBoard[selectedPieceTile.x][selectedPieceTile.y];
-				newBoard[tile.x][tile.y] = new Piece(movedPiece.type, movedPiece.color, false);
+				const movedPiece = {...newBoard[selectedPieceTile.x][selectedPieceTile.y]};
+				const move = makeChessMove(selectedPieceTile, tile, movedPiece);
+				console.log(move);
+
+				const capturedPiece = {...newBoard[tile.x][tile.y]};
+				newBoard[tile.x][tile.y] = {type: movedPiece.type, color: movedPiece.color, tileHighlighted: false};
+
+				if (capturedPiece.type !== PieceType.None) {
+					move.capturedPiece = {...capturedPiece};
+				}
+
 				newBoard[selectedPieceTile.x][selectedPieceTile.y].type = PieceType.None;
+
+				const newMovesLog = [...movesLog];
+				newMovesLog.push(move);
+				setMovesLog(newMovesLog);
 
 				changeTurn();
 				setBoard(newBoard);
@@ -297,5 +304,8 @@ export default function Chess() {
 		}
 	}
 
-	return <div><GameBoard board={board} onClickCallback={onClickTile} /></div>
+	return <div className="mainContainer">
+		<div><NotationLog allMoves={movesLog}/></div>
+		<div><GameBoard board={board} onClickCallback={onClickTile} /></div>
+	</div>
 }
