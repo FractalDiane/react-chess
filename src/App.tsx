@@ -1,7 +1,7 @@
 import Chess from "./Chess";
 
 function App() {
-	return <center><div><Chess /></div></center>;
+	return <div id="chess"><Chess /></div>;
 }
 
 export default App;

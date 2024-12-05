@@ -1,9 +1,9 @@
-#root {
+/*#root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-}
+}*/
 
 .tile {
 	min-width: 100px;
@@ -11,9 +11,20 @@
 	font-size: 40px;
 	padding: 4px;
 	background-color: grey;
-	border-color: black;
+	border: 2px solid black;
 }
 
-.mainContainer {
-	display: inline;
+#mainApp {
+	display: flex;
+	flex-flow: row;
+}
+
+.sideElements {
+	flex-grow: 1;
+	text-align: center;
+}
+
+.centerElement {
+	flex-grow: 0;
+	
 }

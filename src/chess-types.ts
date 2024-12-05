@@ -13,6 +13,10 @@ export enum PieceColor {
 	Black,
 }
 
+export function getOppositeColor(color: PieceColor): PieceColor {
+	return color === PieceColor.White ? PieceColor.Black : PieceColor.White;
+}
+
 export const PIECE_LETTERS = [
 	"-", "P", "N", "B", "R", "Q", "K"
 ];
