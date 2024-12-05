@@ -16,8 +16,8 @@ function getMoveNotation(move: ChessMove, index: number): string {
 		return "0-0-0";
 	}
 
-	const lhs = `${PIECE_LETTERS[move.piece.type]}${RANK_LETTERS[move.originSpace.x]}${move.originSpace.y + 1}`;
-	const rhs = `${RANK_LETTERS[move.targetSpace.x]}${move.targetSpace.y + 1}`;
+	const lhs = `${PIECE_LETTERS[move.piece.type]}${RANK_LETTERS[move.originSpace.x]}${8 - move.originSpace.y}`;
+	const rhs = `${RANK_LETTERS[move.targetSpace.x]}${8 - move.targetSpace.y}`;
 	const suffix = `${move.isEnPassant ? " e.p." : ""}${move.checkType === CheckType.Checkmate ? "#" : move.checkType === CheckType.Check ? "+" : ""}`;
 	return `${index + 1}. ${lhs}${move.capturedPiece.type !== PieceType.None ? "x" : "-"}${rhs}${suffix}`;
 }
