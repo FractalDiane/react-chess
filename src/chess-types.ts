@@ -29,6 +29,8 @@ export interface Piece {
 	type: PieceType;
 	color: PieceColor;
 	tileHighlighted: boolean;
+
+	enPassantType?: PieceColor;
 }
 
 export interface Vector2 {

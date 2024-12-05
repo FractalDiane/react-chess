@@ -18,8 +18,8 @@ function getMoveNotation(move: ChessMove, index: number): string {
 
 	const lhs = `${PIECE_LETTERS[move.piece.type]}${RANK_LETTERS[move.originSpace.x]}${move.originSpace.y + 1}`;
 	const rhs = `${RANK_LETTERS[move.targetSpace.x]}${move.targetSpace.y + 1}`;
-	const suffix = `${move.isEnPassant ? "e.p." : ""} ${move.checkType === CheckType.Checkmate ? "#" : move.checkType === CheckType.Check ? "+" : ""}`;
-	return `${index + 1}. ${lhs}${move.capturedPiece.type !== PieceType.None ? "x" : "-"}${rhs} ${suffix}`;
+	const suffix = `${move.isEnPassant ? " e.p." : ""}${move.checkType === CheckType.Checkmate ? "#" : move.checkType === CheckType.Check ? "+" : ""}`;
+	return `${index + 1}. ${lhs}${move.capturedPiece.type !== PieceType.None ? "x" : "-"}${rhs}${suffix}`;
 }
 
 interface NotationLogProps {
@@ -31,9 +31,6 @@ export default function NotationLog(props: NotationLogProps) {
 	for (let i = 0; i < props.allMoves.length; ++i) {
 		entries.push(<NotationEntry key={i} text={getMoveNotation(props.allMoves[i], i)} />);
 	}
-	/*for (const entry of props.allMoves) {
-		entries.push(<NotationEntry text={getMoveNotation(entry)} />);
-	}*/
 
 	return <div className="notationLog">
 		{entries}

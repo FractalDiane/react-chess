@@ -72,7 +72,7 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][], onlyAtta
 			];
 
 			for (const attackSpace of forwardDiagonals) {
-				if (isOnBoard(attackSpace) && (onlyAttacks || isSpaceBlocked(attackSpace, piece, board) === SpaceBlockedResult.BlockedByOtherTeam)) {
+				if (isOnBoard(attackSpace) && ((onlyAttacks || isSpaceBlocked(attackSpace, piece, board) === SpaceBlockedResult.BlockedByOtherTeam) || (board[attackSpace.x][attackSpace.y].enPassantType  === getOppositeColor(piece.color)))) {
 					result.push(attackSpace);
 				}
 			}
@@ -204,8 +204,16 @@ function getValidMoves(piece: Piece, coords: Vector2, board: Piece[][], onlyAtta
 			for (const offset of spaceOffsets) {
 				const sum: Vector2 = {x: coords.x + offset.x, y: coords.y + offset.y};
 				const otherColor = getOppositeColor(piece.color);
-				if (isOnBoard(sum) && isSpaceBlocked(sum, piece, board) != SpaceBlockedResult.BlockedByOwnTeam && (onlyAttacks || !isSpaceAttacked(sum, otherColor, board))) {
-					result.push(sum);
+				if (isOnBoard(sum) && isSpaceBlocked(sum, piece, board) != SpaceBlockedResult.BlockedByOwnTeam) {
+					const previousPieceThere = board[sum.x][sum.y].type;
+					board[coords.x][coords.y].type = PieceType.None;
+					board[sum.x][sum.y].type = PieceType.None;
+					if (onlyAttacks || !isSpaceAttacked(sum, otherColor, board)) {
+						result.push(sum);
+					}
+
+					board[coords.x][coords.y].type = PieceType.King;
+					board[sum.x][sum.y].type = previousPieceThere;
 				}
 			}
 		} break;
@@ -237,7 +245,7 @@ interface TileProps {
 }
 
 function Tile(props: TileProps) {
-	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece.tileHighlighted ? "pink" : "grey", color: props.piece.color === PieceColor.White ? "white" : "black"}}><b>{PIECE_LETTERS[props.piece.type]}</b></button>
+	return <button className="tile" onClick={props.onClickCallback} style={{backgroundColor: props.piece.tileHighlighted ? "pink" : "grey", color: props.piece.type === PieceType.None ? "darkgrey" : props.piece.color === PieceColor.White ? "white" : "black"}}><b>{PIECE_LETTERS[props.piece.type]}</b></button>
 }
 
 interface GameBoardProps {
@@ -295,6 +303,16 @@ export default function Chess() {
 		setCurrentTurn((currentTurn + 1) % 2);
 	}
 
+	function clearEnPassant(board: Piece[][]) {
+		for (const row of board) {
+			for (const tile of row) {
+				if (tile.enPassantType === getOppositeColor(currentTurn)) {
+					tile.enPassantType = undefined;
+				}
+			}
+		}
+	}
+
 	function onClickTile(tile: Vector2) {
 		const tilePiece = board[tile.x][tile.y];
 
@@ -312,7 +330,7 @@ export default function Chess() {
 				console.log(move);
 
 				const capturedPiece = {...newBoard[tile.x][tile.y]};
-				newBoard[tile.x][tile.y] = {type: movedPiece.type, color: movedPiece.color, tileHighlighted: false};
+				newBoard[tile.x][tile.y] = {type: movedPiece.type, color: movedPiece.color, tileHighlighted: false, enPassantType: newBoard[tile.x][tile.y].enPassantType};
 
 				if (capturedPiece.type !== PieceType.None) {
 					move.capturedPiece = {...capturedPiece};
@@ -320,7 +338,18 @@ export default function Chess() {
 
 				newBoard[selectedPieceTile.x][selectedPieceTile.y].type = PieceType.None;
 
+				if (board[tile.x][tile.y].enPassantType !== undefined) {
+					const epTarget = newBoard[tile.x][tile.y + Math.sign(selectedPieceTile.y - tile.y)];
+					move.capturedPiece = {...epTarget};
+					epTarget.type = PieceType.None;
+					move.isEnPassant = true;
+					newBoard[tile.x][tile.y].enPassantType = undefined;
+				} else if (movedPiece.type === PieceType.Pawn && Math.abs(selectedPieceTile.y - tile.y) == 2) {
+					const skippedSpace: Vector2 = {x: selectedPieceTile.x, y: selectedPieceTile.y - Math.sign(selectedPieceTile.y - tile.y)};
+					newBoard[skippedSpace.x][skippedSpace.y].enPassantType = movedPiece.color;
+				}
 				
+				clearEnPassant(newBoard);
 				
 				setBoard(newBoard);
 
